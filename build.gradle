@@ -1,0 +1,163 @@
+import java.nio.file.OpenOption;
+import org.apache.tools.ant.filters.*
+import org.ajoberstar.grgit.operation.OpenOp
+
+buildscript {
+	ext {
+		groovyVersion     = '2.4.5'
+		springBootVersion = '1.3.1.RELEASE'
+	}
+	repositories {
+		maven { url 'http://repo.spring.io/libs-release' }
+		mavenLocal()
+		mavenCentral()
+	}
+	dependencies {
+		 classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+		 classpath 'com.github.ben-manes:gradle-versions-plugin:0.11.3'
+		 classpath 'org.ajoberstar:gradle-git:1.3.2'
+		 classpath 'io.spring.gradle:dependency-management-plugin:0.5.4.RELEASE'
+		 classpath 'org.kordamp.gradle:stats-gradle-plugin:0.1.5'
+		 classpath 'org.flywaydb:flyway-gradle-plugin:3.2.1'
+		 classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.3'
+		 classpath 'org.asciidoctor:asciidoctorj-pdf:1.5.0-alpha.10.1'
+	}
+}
+
+apply plugin: 'groovy'
+apply plugin: 'eclipse'
+apply plugin: 'spring-boot'
+apply plugin: 'com.github.ben-manes.versions'
+apply plugin: 'jacoco'
+apply plugin: 'build-dashboard'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'org.kordamp.gradle.stats'
+apply plugin: 'org.flywaydb.flyway'
+apply plugin: 'org.asciidoctor.convert'
+apply from : 'gradle/codenarc.gradle'
+apply from : 'gradle/deploy.gradle'
+
+jar {
+	baseName = 'myapp'
+	version  = '0.0.1'
+}
+
+def javaVersion = JavaVersion.VERSION_1_8
+sourceCompatibility = javaVersion
+targetCompatibility = javaVersion
+
+task enforceVersion << {
+	def foundVersion = JavaVersion.current()
+	if (foundVersion != javaVersion)
+		throw new IllegalStateException("Wrong Java version; required is "
+			+ javaVersion + ", but found " + foundVersion)
+}
+
+compileJava.dependsOn(enforceVersion);
+
+springBoot {
+	executable = true
+}
+
+asciidoctor {
+	backends 'html5','pdf'
+}
+
+repositories {
+	maven { url 'http://repo.spring.io/libs-release' }
+	mavenLocal()
+	mavenCentral()
+}
+
+dependencies {
+	compile 'org.springframework:spring-core'
+	compile 'org.springframework.boot:spring-boot-starter-data-jpa'
+	compile ('org.springframework.boot:spring-boot-starter-web') {
+		// I don't need Websockets for now
+		exclude module: 'tomcat-embed-websocket'
+	}
+	compile 'org.springframework.boot:spring-boot-starter-actuator'
+	compile 'org.springframework.boot:spring-boot-starter-mail'
+	compile 'org.springframework.boot:spring-boot-starter-security'
+	compile 'org.springframework.boot:spring-boot-starter-validation'
+	compile 'org.springframework:spring-context-support'
+	
+	compile 'org.jsoup:jsoup:1.8.3'
+
+	compile "org.codehaus.groovy:groovy-all:${groovyVersion}"
+
+	compile 'commons-io:commons-io:2.4'
+	compile 'org.apache.commons:commons-lang3:3.4'
+	compile 'org.apache.poi:poi:3.13'
+
+	compile 'mysql:mysql-connector-java:5.1.37'
+	compile 'org.hibernate:hibernate-search:5.3.0.Final'
+
+	compile 'com.fasterxml.jackson.core:jackson-databind:2.6.3'
+
+	// TODO some maybe useful client libs, clean up here!
+	compile 'org.webjars:jquery:2.1.4'
+	compile 'org.webjars:bootstrap:3.3.5'
+	compile 'org.webjars:angularjs:1.4.7'
+	compile 'org.webjars:angular-ui-bootstrap:0.13.4'
+	compile 'org.webjars:font-awesome:4.5.0'
+	compile 'org.webjars:angular-multi-select:4.0.0'
+	compile 'org.webjars:angular-loading-bar:0.8.0'
+	compile 'org.webjars:ng-tags-input:2.3.0'
+	compile 'org.webjars:angular-ui-select:0.13.1'
+	compile 'org.webjars.bower:ng-file-upload:5.0.9'
+	compile 'org.webjars.bower:textAngular:1.4.6'
+
+	testCompile 'com.h2database:h2'
+	testCompile 'org.springframework.boot:spring-boot-starter-test'
+
+	//TODO what was json-path good for?
+	testCompile 'com.jayway.jsonpath:json-path'
+	testCompile 'info.cukes:cucumber-junit:1.2.4'
+	testCompile 'info.cukes:cucumber-groovy:1.2.4'
+	testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
+
+	// cglib needed by spock test to mock non interfaces, TODO Link to doc
+	testRuntime 'cglib:cglib-nodep:3.2.0'
+
+	// TODO  swagger is not the way to go anymore, take a look at Spring Rest Docs
+	compile 'com.mangofactory:swagger-springmvc:1.0.2'
+
+	compile 'org.flywaydb:flyway-core'
+}
+
+configurations.compile {
+	resolutionStrategy {
+		failOnVersionConflict()
+	}
+}
+
+task wrapper(type: Wrapper) { gradleVersion = '2.10' }
+
+
+/**
+ * Generates git.properties file with git infos like commit hash etc.
+ * These infos are available through the http endpoint /info
+ */
+task generateGitProperties {
+	doLast {
+		def openOp = new OpenOp()
+		openOp.setDir('.')
+
+		def repo = openOp.call()
+		def headCommit = repo.head()
+		ext.gitBranch = repo.branch.current.name
+		ext.gitCommitId = headCommit.abbreviatedId
+		ext.gitCommitTime = new Date(headCommit.time * 1000L).format('dd.MM.yyyy HH:mm:ss')
+
+		File resourcesMainDir = new File(project.buildDir, 'resources/main')
+		File gitPropertiesFile = new File(resourcesMainDir, 'git.properties')
+		gitPropertiesFile.text = """git.branch=${gitBranch}
+git.commit.id=${gitCommitId}
+git.commit.time=${gitCommitTime}
+"""
+	}
+}
+
+project.tasks.jar.dependsOn('generateGitProperties')
+

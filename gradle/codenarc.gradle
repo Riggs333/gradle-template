@@ -1,0 +1,24 @@
+apply plugin: 'codenarc'
+
+buildscript {
+	ext {
+		codenarcVersion   = '0.24.1'
+	}
+	dependencies {
+		"org.codenarc:CodeNarc:${codenarcVersion}"
+	}
+}
+
+codenarc {
+	// you could set the limits of max violations here with 'maxPriority1Violations = 42' (but why? ;-))
+	toolVersion = codenarcVersion
+}
+
+tasks.withType(CodeNarc) {
+	reports {
+		// TODO who needs XML? sonarqube?
+		xml.enabled  = true
+		html.enabled = true
+	}
+}
+

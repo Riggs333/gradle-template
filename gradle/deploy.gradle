@@ -1,0 +1,49 @@
+buildscript {
+	repositories {
+		jcenter()
+	}
+	dependencies {
+		classpath 'org.hidetake:gradle-ssh-plugin:1.1.4'
+	}
+}
+
+//apply plugin: 'org.hidetake.ssh'
+apply plugin: org.hidetake.gradle.ssh.plugin.SshPlugin
+
+remotes {
+	demoserver {
+	  host = '123.123.123.123'
+	  user = 'tomcat'
+	  identity = file('config/ssh-keys/demo/id_rsa')
+	  knownHosts = allowAnyHosts
+	}
+	prodserver {
+	  host = '123.123.123.123'
+	  user = 'tomcat'
+	  identity = file('config/ssh-keys/prod/id_rsa')
+	  knownHosts = allowAnyHosts
+	}
+  }
+
+task deployToDemoServer(dependsOn: build) << {
+	deployToRemoteServer(remotes.demoserver, '/opt/projekt/')
+}
+deployToDemoServer.description = "copy jar to Demo Server ${remotes.demoserver}"
+
+task deployToProdServer(dependsOn: build) << {
+	deployToRemoteServer(remotes.prodserver, '/home/tomcat/')
+}
+deployToProdServer.description = "copy jar to Prod Server ${remotes.prodserver}"
+
+def deployToRemoteServer(server, String remoteDirectory) {
+	ssh.run {
+		session(server) {
+			logger.lifecycle "Copy ${jar.archivePath} to remote server '${server}'..."
+			put from:jar.archivePath, into:remoteDirectory+'myapp-new.jar'
+
+			logger.lifecycle 'start new version of app at remote server...'
+			execute remoteDirectory+'./stopOldAndStartNew.sh'
+		}
+	  }
+}
+
