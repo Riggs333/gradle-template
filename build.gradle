@@ -14,7 +14,7 @@ buildscript {
 	}
 	dependencies {
 		 classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
-		 classpath 'com.github.ben-manes:gradle-versions-plugin:0.11.3'
+		 classpath 'com.github.ben-manes:gradle-versions-plugin:0.12.0'
 		 classpath 'org.ajoberstar:gradle-git:1.3.2'
 		 classpath 'io.spring.gradle:dependency-management-plugin:0.5.4.RELEASE'
 		 classpath 'org.kordamp.gradle:stats-gradle-plugin:0.1.5'
