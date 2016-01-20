@@ -60,6 +60,7 @@ springBoot {
 
 asciidoctor {
 	backends 'html5','pdf'
+	attributes 'toc':'left'
 }
 
 repositories {
@@ -80,7 +81,7 @@ dependencies {
 	compile 'org.springframework.boot:spring-boot-starter-security'
 	compile 'org.springframework.boot:spring-boot-starter-validation'
 	compile 'org.springframework:spring-context-support'
-	
+
 	compile 'org.jsoup:jsoup:1.8.3'
 
 	compile "org.codehaus.groovy:groovy-all:${groovyVersion}"
