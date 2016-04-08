@@ -19,7 +19,7 @@ buildscript {
 		 classpath 'org.kordamp.gradle:stats-gradle-plugin:0.1.5'
 		 classpath 'org.flywaydb:flyway-gradle-plugin:3.2.1'
 		 classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.3'
-		 classpath 'org.asciidoctor:asciidoctorj-pdf:1.5.0-alpha.10.1'
+		 classpath 'org.asciidoctor:asciidoctorj-pdf:1.5.0-alpha.11'
 		 classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.1.9'
 	}
 }
