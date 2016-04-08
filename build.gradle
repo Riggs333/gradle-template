@@ -110,6 +110,7 @@ dependencies {
 
 	testCompile 'com.h2database:h2'
 	testCompile 'org.springframework.boot:spring-boot-starter-test'
+        testCompile 'nl.jqno.equalsverifier:equalsverifier:2.0.2'
 
 	//TODO what was json-path good for?
 	testCompile 'com.jayway.jsonpath:json-path'
