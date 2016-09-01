@@ -17,3 +17,6 @@ And this is _italic_
 This is `mono` (great!)
 
 Here is a link http://www.google.de[GOOGLE]
+
+.Google Landing page
+screenshot::http://google.com[google]
