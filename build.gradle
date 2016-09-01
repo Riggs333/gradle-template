@@ -126,9 +126,6 @@ dependencies {
 	// cglib needed by spock test to mock non interfaces, TODO Link to doc
 	testRuntime 'cglib:cglib-nodep:3.2.1'
 
-	// TODO  swagger is not the way to go anymore, take a look at Spring Rest Docs
-	compile 'com.mangofactory:swagger-springmvc:1.0.2'
-
 	//compile 'org.flywaydb:flyway-core'
 }
 
