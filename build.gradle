@@ -132,4 +132,12 @@ configurations.compile {
 	}
 }
 
-
+// Enforce no SNAPSHOT dependencies
+// source: https://discuss.gradle.org/t/enforce-no-snapshot-dependencies-in-gradle/3851
+configurations.all {
+    resolutionStrategy.eachDependency { details ->
+        if (details.requested.version.endsWith("-SNAPSHOT")) {
+            throw new GradleException("found snapshot dependency")
+        }
+    }
+}
